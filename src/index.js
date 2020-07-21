@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import logoImg from './assets/logo.png';
+import Enemies from './Enemies';
 
 const config = {
   type: Phaser.AUTO,
@@ -29,8 +30,9 @@ function preload() {
     frameWidth: 32,
     frameHeight: 64,
   });
+  this.load.image('slime', '../src/assets/slime.png');
 }
-let player, cursors;
+let player, cursors, enemies;
 
 function create() {
   const map = this.make.tilemap({ key: 'map' });
@@ -48,10 +50,24 @@ function create() {
   highLayer.setDepth(10);
 
   //Player
-  player = this.physics.add.sprite(100, 450, 'player');
+
+  const spawnObject = map.findObject(
+    'Player',
+    (obj) => obj.name === 'Spawn Point'
+  );
+  player = this.physics.add.sprite(spawnObject.x, spawnObject.y, 'player');
   this.physics.add.collider(player, lowerLayer);
   this.physics.add.collider(player, groundLayer);
   this.physics.add.collider(player, worldLayer);
+
+  //Enemies
+  this.enemies = map.createFromObjects('Enemies', 'Enemy', {});
+  this.enemiesGroup = new Enemies(this.physics.world, this, [], this.enemies);
+  this.physics.add.collider(this.enemiesGroup, lowerLayer);
+  this.physics.add.collider(this.enemiesGroup, groundLayer);
+  this.physics.add.collider(this.enemiesGroup, worldLayer);
+  this.physics.add.collider(this.enemiesGroup, player, hitEnemy, null, this);
+
   const anims = this.anims;
   anims.create({
     key: 'left',
@@ -117,4 +133,8 @@ function update() {
   } else if (cursors.down.isDown) {
     player.anims.play('front', true);
   } else player.anims.stop();
+}
+
+function hitEnemy(player, enemiesGroup) {
+  this.scene.restart();
 }
