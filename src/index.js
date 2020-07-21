@@ -42,7 +42,16 @@ function create() {
   const grassLayer = map.createStaticLayer('Grass', tileset, 0, 0);
   const worldLayer = map.createStaticLayer('World', tileset, 0, 0);
   const highLayer = map.createStaticLayer('High', tileset, 0, 0);
+  lowerLayer.setCollisionByProperty({ collides: true });
+  groundLayer.setCollisionByProperty({ collides: true });
+  worldLayer.setCollisionByProperty({ collides: true });
+  highLayer.setDepth(10);
+
+  //Player
   player = this.physics.add.sprite(100, 450, 'player');
+  this.physics.add.collider(player, lowerLayer);
+  this.physics.add.collider(player, groundLayer);
+  this.physics.add.collider(player, worldLayer);
   const anims = this.anims;
   anims.create({
     key: 'left',
@@ -81,6 +90,9 @@ function create() {
       repeat: -1,
     }),
   });
+  const camera = this.cameras.main;
+  camera.startFollow(player);
+  camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 }
 
 function update() {
